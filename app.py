@@ -3,7 +3,8 @@ from tkinter import ttk, messagebox
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tools import detect_anomalies, visualize_water_pressure, draw_graph, simulate_water_flow_extended
-
+import csv
+import datetime
 
 # ---- Import your water management code here ----
 # from water_simulation import Graph, simulate_water_flow_extended, draw_graph, visualize_water_pressure, ...
@@ -77,6 +78,15 @@ class WaterApp:
         # Visualize Buttons
         self.vis_button = ttk.Button(self.root, text="📊 Show Graphs", command=self.show_graphs)
         self.vis_button.pack()
+        
+        #Csv save button
+        self.save_button = ttk.Button(self.root, text="💾 Save Results to CSV", command=self.save_to_csv)
+        self.save_button.pack(pady=5)   
+
+        #button for future ml prediction
+        self.ml_button = ttk.Button(self.root, text="🤖 Predict Future Pressure (Coming Soon)", state='disabled')
+        self.ml_button.pack(pady=5)
+
 
     def update_source_dropdown(self):
         self.source_dropdown['values'] = list(self.graph.graph.keys())
@@ -98,14 +108,56 @@ class WaterApp:
         for node, time, pressure in self.flow_result:
             self.output_text.insert(tk.END, f"{node} - Time: {time}, Pressure: {pressure}\n")
         self.output_text.insert(tk.END, summary)
+        
+    # def show_graphs(self):
+    #     if not self.flow_result:
+    #         messagebox.showwarning("⚠️", "Run simulation first.")
+    #         return
+        
+    #     visualize_water_pressure(self.flow_result)
+    #     draw_graph(self.graph)
 
     def show_graphs(self):
         if not self.flow_result:
             messagebox.showwarning("⚠️", "Run simulation first.")
             return
+
+        # Create a new pop-up window
+        fig, ax = plt.subplots(figsize=(10, 6))
         
-        visualize_water_pressure(self.flow_result)
-        draw_graph(self.graph)
+        times = [t for _, t, _ in self.flow_result]
+        pressures = [p for _, _, p in self.flow_result]
+        nodes = [n for n, _, _ in self.flow_result]
+
+        ax.plot(nodes, times, marker='o', label='Time to Reach Node (s)')
+        ax.plot(nodes, pressures, marker='x', label='Water Pressure')
+        ax.set_title("💧 Water Flow Visualization")
+        ax.set_xlabel("Node")
+        ax.set_ylabel("Value")
+        ax.legend()
+        ax.grid(True)
+
+        # Launch in external matplotlib window
+        plt.tight_layout()
+        plt.show()
+
+    def save_to_csv(self):
+        if not self.flow_result:
+            messagebox.showwarning("⚠️", "Run simulation first.")
+            return
+
+        filename = f"flow_result_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        try:
+            with open(filename, mode='w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(["Node", "Time", "Pressure"])
+                for row in self.flow_result:
+                    writer.writerow(row)
+            messagebox.showinfo("✅ Success", f"Results saved to {filename}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save CSV: {e}")
+    
+
 
 # -------- Run it --------
 if __name__ == "__main__":
