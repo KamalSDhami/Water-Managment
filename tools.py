@@ -1,3 +1,10 @@
+import heapq
+import matplotlib.pyplot as plt
+import networkx as nx
+from collections import deque
+import csv
+import time
+
 class Graph:
     def __init__(self):
         self.graph = {}  # node: [(neighbor, distance)]
@@ -13,7 +20,7 @@ class Graph:
     def display(self):
         for node in self.graph:
             print(f"{node} -> {self.graph[node]}")
-import heapq
+
 
 def prim_mst(graph, start_node):
     visited = set()
@@ -37,10 +44,9 @@ def prim_mst(graph, start_node):
                 heapq.heappush(min_heap, (w, neighbor))
 
     return total_cost, mst_edges
-from collections import deque
 
-from collections import deque
-import time
+
+
 
 def simulate_water_flow_extended(graph, start_node, max_pressure=100, drop_rate=5, sleep=False):
     visited = set()
@@ -74,7 +80,7 @@ def simulate_water_flow_extended(graph, start_node, max_pressure=100, drop_rate=
                 queue.append((neighbor, next_time, max(next_pressure, 0)))  # Avoid negative pressure
 
     return flow_data
-import matplotlib.pyplot as plt
+
 
 def visualize_water_pressure(flow_data):
     houses = [node for node, _, _ in flow_data]
@@ -93,7 +99,7 @@ def visualize_water_pressure(flow_data):
     plt.grid(True)
     plt.show()
 #otpional 
-import networkx as nx
+
 
 def draw_graph(graph_obj):
     G = nx.Graph()
@@ -121,7 +127,7 @@ def detect_anomalies(flow_data, drop_threshold=40):
             anomalies.append((current_node, drop_percent))
 
     return anomalies
-import csv
+
 
 def save_flow_to_csv(flow_data, filename="water_flow_log.csv"):
     with open(filename, mode='w', newline='') as file:

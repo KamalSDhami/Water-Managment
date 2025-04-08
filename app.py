@@ -5,6 +5,14 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tools import detect_anomalies, visualize_water_pressure, draw_graph, simulate_water_flow_extended
 import csv
 import datetime
+import heapq
+
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import mplcursors
+import numpy as np
+import os
+from tkinter import filedialog
 
 # ---- Import your water management code here ----
 # from water_simulation import Graph, simulate_water_flow_extended, draw_graph, visualize_water_pressure, ...
@@ -23,30 +31,29 @@ class Graph:
     def display(self):
         for node in self.graph:
             print(f"{node} -> {self.graph[node]}")
-import heapq
 
-def prim_mst(graph, start_node):
-    visited = set()
-    min_heap = [(0, start_node)]  # (weight, node)
-    total_cost = 0
-    mst_edges = []
+    def prim_mst(graph, start_node):
+        visited = set()
+        min_heap = [(0, start_node)]  # (weight, node)
+        total_cost = 0
+        mst_edges = []
 
-    while min_heap:
-        weight, current = heapq.heappop(min_heap)
-        if current in visited:
-            continue
+        while min_heap:
+            weight, current = heapq.heappop(min_heap)
+            if current in visited:
+                continue
 
-        visited.add(current)
-        total_cost += weight
+            visited.add(current)
+            total_cost += weight
 
-        if weight != 0:
-            mst_edges.append((current, weight))
+            if weight != 0:
+                mst_edges.append((current, weight))
 
-        for neighbor, w in graph.graph[current]:
-            if neighbor not in visited:
-                heapq.heappush(min_heap, (w, neighbor))
+            for neighbor, w in graph.graph[current]:
+                if neighbor not in visited:
+                    heapq.heappush(min_heap, (w, neighbor))
 
-    return total_cost, mst_edges
+        return total_cost, mst_edges
 
 class WaterApp:
     def __init__(self, root):
@@ -122,6 +129,38 @@ class WaterApp:
     #     visualize_water_pressure(self.flow_result)
     #     draw_graph(self.graph)
 
+    # def show_graphs(self):
+    #     if not self.flow_result:
+    #         messagebox.showwarning("⚠️", "Run simulation first.")
+    #         return
+
+    #     # Get anomaly nodes
+    #     anomalies = self.detect_anomalies()
+    #     anomaly_nodes = [node for node, _ in anomalies]
+
+    #     # Extract values
+    #     nodes = [n for n, _, _ in self.flow_result]
+    #     times = [t for _, t, _ in self.flow_result]
+    #     pressures = [p for _, _, p in self.flow_result]
+
+    #     # Create Plot
+    #     fig, ax = plt.subplots(figsize=(10, 6))
+    #     ax.plot(nodes, times, marker='o', label='Time to Reach Node (s)', color='blue')
+    #     ax.plot(nodes, pressures, marker='x', label='Water Pressure', color='green')
+
+    #     # 🔴 Mark anomaly points
+    #     for node, pressure in anomalies:
+    #         ax.plot(node, pressure, 'ro', markersize=10, label='Anomaly' if node == anomaly_nodes[0] else "")
+
+    #     ax.set_title("💧 Water Flow Visualization with Anomalies")
+    #     ax.set_xlabel("Node")
+    #     ax.set_ylabel("Value")
+    #     ax.grid(True)
+    #     ax.legend()
+
+    #     plt.tight_layout()
+    #     plt.show()
+
     def show_graphs(self):
         if not self.flow_result:
             messagebox.showwarning("⚠️", "Run simulation first.")
@@ -141,9 +180,9 @@ class WaterApp:
         ax.plot(nodes, times, marker='o', label='Time to Reach Node (s)', color='blue')
         ax.plot(nodes, pressures, marker='x', label='Water Pressure', color='green')
 
-        # 🔴 Mark anomaly points
-        for node, pressure in anomalies:
-            ax.plot(node, pressure, 'ro', markersize=10, label='Anomaly' if node == anomaly_nodes[0] else "")
+        # 🔴 Mark anomaly points with red star
+        for idx, (node, pressure) in enumerate(anomalies):
+            ax.plot(node, pressure, 'r*', markersize=12, label='Anomaly' if idx == 0 else "")
 
         ax.set_title("💧 Water Flow Visualization with Anomalies")
         ax.set_xlabel("Node")
@@ -153,6 +192,19 @@ class WaterApp:
 
         plt.tight_layout()
         plt.show()
+
+        # ✅ Ask to export
+        export = messagebox.askyesno("📤 Export", "Do you want to save this graph?")
+        if export:
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".png",
+                filetypes=[("PNG File", "*.png"), ("PDF File", "*.pdf")],
+                initialfile="water_flow_graph"
+            )
+            if file_path:
+                fig.savefig(file_path)
+                messagebox.showinfo("✅ Saved", f"Graph saved to:\n{file_path}")
+
 
     def save_to_csv(self):
         if not self.flow_result:
