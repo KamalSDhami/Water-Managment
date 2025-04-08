@@ -87,6 +87,11 @@ class WaterApp:
         self.ml_button = ttk.Button(self.root, text="🤖 Predict Future Pressure (Coming Soon)", state='disabled')
         self.ml_button.pack(pady=5)
 
+        #Add Check Anomalies button
+        self.anomaly_button = ttk.Button(self.root, text="⚠️ Check Anomalies", command=self.show_anomalies)
+        self.anomaly_button.pack(pady=5)
+
+
 
     def update_source_dropdown(self):
         self.source_dropdown['values'] = list(self.graph.graph.keys())
@@ -122,22 +127,30 @@ class WaterApp:
             messagebox.showwarning("⚠️", "Run simulation first.")
             return
 
-        # Create a new pop-up window
-        fig, ax = plt.subplots(figsize=(10, 6))
-        
+        # Get anomaly nodes
+        anomalies = self.detect_anomalies()
+        anomaly_nodes = [node for node, _ in anomalies]
+
+        # Extract values
+        nodes = [n for n, _, _ in self.flow_result]
         times = [t for _, t, _ in self.flow_result]
         pressures = [p for _, _, p in self.flow_result]
-        nodes = [n for n, _, _ in self.flow_result]
 
-        ax.plot(nodes, times, marker='o', label='Time to Reach Node (s)')
-        ax.plot(nodes, pressures, marker='x', label='Water Pressure')
-        ax.set_title("💧 Water Flow Visualization")
+        # Create Plot
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(nodes, times, marker='o', label='Time to Reach Node (s)', color='blue')
+        ax.plot(nodes, pressures, marker='x', label='Water Pressure', color='green')
+
+        # 🔴 Mark anomaly points
+        for node, pressure in anomalies:
+            ax.plot(node, pressure, 'ro', markersize=10, label='Anomaly' if node == anomaly_nodes[0] else "")
+
+        ax.set_title("💧 Water Flow Visualization with Anomalies")
         ax.set_xlabel("Node")
         ax.set_ylabel("Value")
-        ax.legend()
         ax.grid(True)
+        ax.legend()
 
-        # Launch in external matplotlib window
         plt.tight_layout()
         plt.show()
 
@@ -156,7 +169,26 @@ class WaterApp:
             messagebox.showinfo("✅ Success", f"Results saved to {filename}")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save CSV: {e}")
-    
+    def detect_anomalies(self):
+        anomalies = []
+        pressures = [p for _, _, p in self.flow_result]
+        avg_pressure = sum(pressures) / len(pressures)
+        threshold = avg_pressure * 0.4  # 40% drop is considered anomaly
+
+        for node, time, pressure in self.flow_result:
+            if pressure < threshold:
+                anomalies.append((node, pressure))
+        
+        return anomalies
+    def show_anomalies(self):
+        anomalies = self.detect_anomalies()
+        if not anomalies:
+            messagebox.showinfo("✅ All Good", "No anomalies detected in pressure levels.")
+        else:
+            alert_msg = "\n".join([f"Node {node}: Pressure = {pressure}" for node, pressure in anomalies])
+            messagebox.showwarning("⚠️ Anomalies Detected", alert_msg)
+
+
 
 
 # -------- Run it --------
