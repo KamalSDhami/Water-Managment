@@ -38,7 +38,7 @@ A Python-based intelligent water distribution management system using graph algo
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/your-username/smart-water-management.git
+git clone https://github.com/KamalSDhami/Water-Managment
 cd smart-water-management
 ```
 
