@@ -143,7 +143,6 @@ def suggest_repairs(anomalies):
     for node, drop in anomalies:
         if drop > 60:
             print(f"🛠️ Critical: Replace pipe at {node}")
-        else:
             print(f"🔍 Moderate: Inspect pipe at {node}")
 
 '''
@@ -162,12 +161,12 @@ for conn in connections:
 g.display()
 '''
 
-g = Graph()
-g.add_edge("Source", "House1", 2)
-g.add_edge("Source", "House2", 4)
-g.add_edge("House1", "House3", 3)
-g.add_edge("House2", "House4", 5)
-g.add_edge("House3", "House5", 4)
+# g = Graph()
+# g.add_edge("Source", "House1", 2)
+# g.add_edge("Source", "House2", 4)
+# g.add_edge("House1", "House3", 3)
+# g.add_edge("House2", "House4", 5)
+# g.add_edge("House3", "House5", 4)
 '''
 simulate_water_flow_extended(g, "Source", max_pressure=100, drop_rate=6, sleep=True)
 flow_result = simulate_water_flow_extended(g, "Source", max_pressure=100, drop_rate=6, sleep=False)
@@ -175,6 +174,8 @@ visualize_water_pressure(flow_result)
 
 # optional 
 draw_graph(g)
+
+'''
 
 '''
 flow_result = simulate_water_flow_extended(g, "Source", max_pressure=100, drop_rate=6, sleep=False)
@@ -186,4 +187,6 @@ anomalies = detect_anomalies(flow_result)
 save_flow_to_csv(flow_result)
 simulation_summary(flow_result, anomalies)
 suggest_repairs(anomalies)
+'''
+
 
